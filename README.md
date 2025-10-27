@@ -10,6 +10,11 @@ NFC etiketi okutulduğunda kullanıcıya ait kartvizit/iletişim sayfasını gö
 - Kartvizit/iletişim sayfası (foto, logo, sosyal ikonlar)
 - Çoklu sunucu desteği
 
+### Options Sidebar Kullanımı
+- Sayfanın sağ altındaki "Seçenekleri Aç" butonu ile paneli açabilir, ESC ile hızla kapatabilirsiniz.
+- Panel açıkken odak içeride kalır; TAB ve SHIFT+TAB ile seçenekler arasında dolaşabilirsiniz.
+- Mobilde panel ekranın altından çekmece olarak açılır, masaüstünde sağdan kayar.
+
 ## Geliştirme
 - (Proje stack’i ve çalıştırma adımları buraya gelecek)
 
