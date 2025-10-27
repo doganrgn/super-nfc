@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from fastapi import FastAPI
 from fastapi import File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import (
     HTMLResponse,
@@ -15,6 +16,7 @@ from fastapi.responses import (
     RedirectResponse,
     StreamingResponse,
 )
+from fastapi import Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.sql import func
@@ -109,7 +111,7 @@ def _ensure_admin(user: User) -> None:
 
 
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request) -> HTMLResponse:
+def home(request: Request):
     return render_template(
         request,
         "home.html",
@@ -126,7 +128,7 @@ def register_form(
     pending_shortid: Optional[str] = None,
     next: Optional[str] = None,
     error: Optional[str] = None,
-) -> HTMLResponse:
+):
     # // CODEx: NFC taraması yapılmadan kayıt olunmaması için kontrol
     if not pending_shortid:
         error = error or "Kayıt için önce NFC etiketinizi okutmalısınız."
@@ -149,7 +151,7 @@ def register_submit(
     name: Optional[str] = Form(None),
     pending_shortid: str = Form(""),
     next_url: str = Form("/dashboard"),
-) -> RedirectResponse | HTMLResponse:
+):
     email = email.strip().lower()
     pending_shortid = pending_shortid.strip()
     if not pending_shortid:
@@ -213,7 +215,7 @@ def login_form(
     request: Request,
     e: Optional[str] = None,
     next: Optional[str] = None,
-) -> HTMLResponse:
+):
     error = None
     if e == "exists":
         error = "Bu e-posta zaten kayıtlı. Lütfen giriş yapın."
@@ -232,7 +234,7 @@ def login_submit(
     email: str = Form(...),
     password: str = Form(...),
     next_url: str = Form("/dashboard"),
-) -> RedirectResponse:
+):
     email = email.strip().lower()
     with get_session() as session:
         user = session.exec(select(User).where(User.email == email)).first()
@@ -246,14 +248,14 @@ def login_submit(
 
 
 @app.post("/logout")
-def logout() -> RedirectResponse:
+def logout():
     response = RedirectResponse(url="/", status_code=303)
     clear_session_cookie(response)
     return response
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
+def dashboard(request: Request):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
@@ -285,7 +287,7 @@ def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
 
 
 @app.get("/claim-info/{shortid}", response_class=HTMLResponse)
-def claim_info(request: Request, shortid: str) -> HTMLResponse:
+def claim_info(request: Request, shortid: str):
     with get_session() as session:
         tag = session.exec(select(Tag).where(Tag.shortid == shortid)).first()
     if not tag:
@@ -322,19 +324,19 @@ def claim_info(request: Request, shortid: str) -> HTMLResponse:
     return render_template(
         request,
         "claim_info.html",
-            {
-                "shortid": shortid,
-                "logged_in": bool(get_current_user_id(request)),
-                "login_url": login_target,
-                "register_url": register_target,
-                "already_claimed": False,
-                "support_email": SUPPORT_EMAIL,
-            },
-        )
+        {
+            "shortid": shortid,
+            "logged_in": bool(get_current_user_id(request)),
+            "login_url": login_target,
+            "register_url": register_target,
+            "already_claimed": False,
+            "support_email": SUPPORT_EMAIL,
+        },
+    )
 
 
 @app.get("/claim/{shortid}", response_class=HTMLResponse)
-def claim_form(request: Request, shortid: str) -> HTMLResponse | RedirectResponse:
+def claim_form(request: Request, shortid: str):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url=f"/login?next=/claim/{shortid}", status_code=303)
@@ -356,7 +358,7 @@ def claim_form(request: Request, shortid: str) -> HTMLResponse | RedirectRespons
 
 
 @app.post("/claim/{shortid}")
-def claim_submit(request: Request, shortid: str) -> RedirectResponse | HTMLResponse:
+def claim_submit(request: Request, shortid: str):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url=f"/login?next=/claim/{shortid}", status_code=303)
@@ -383,7 +385,7 @@ def claim_submit(request: Request, shortid: str) -> RedirectResponse | HTMLRespo
 
 
 @app.get("/t/{shortid}", response_class=HTMLResponse)
-def show_tag(request: Request, shortid: str) -> HTMLResponse:
+def show_tag(request: Request, shortid: str):
     with get_session() as session:
         tag = session.exec(select(Tag).where(Tag.shortid == shortid)).first()
         if not tag:
@@ -434,7 +436,7 @@ def show_tag(request: Request, shortid: str) -> HTMLResponse:
 
 
 @app.get("/edit/{shortid}", response_class=HTMLResponse)
-def edit_form(request: Request, shortid: str) -> HTMLResponse | RedirectResponse:
+def edit_form(request: Request, shortid: str):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
@@ -477,7 +479,7 @@ async def edit_submit(
     iban: str = Form(""),
     theme_color: str = Form("#2563eb"),
     image: UploadFile | None = File(None),
-) -> RedirectResponse:
+):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
@@ -555,7 +557,7 @@ def generate_shortid(length: int = 8) -> str:
 
 
 @app.post("/admin/generate")
-def admin_generate(request: Request, n: int = Form(10)) -> StreamingResponse | RedirectResponse:
+def admin_generate(request: Request, n: int = Form(10)):
     user = _load_user(get_current_user_id(request))
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -586,7 +588,7 @@ def admin_generate(request: Request, n: int = Form(10)) -> StreamingResponse | R
 
 
 @app.get("/admin/unassigned", response_class=HTMLResponse)
-def admin_unassigned(request: Request) -> HTMLResponse | RedirectResponse:
+def admin_unassigned(request: Request):
     user = _load_user(get_current_user_id(request))
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -603,7 +605,7 @@ def admin_unassigned(request: Request) -> HTMLResponse | RedirectResponse:
 
 
 @app.post("/admin/inventory_import")
-def admin_inventory_import(request: Request, csv_text: str = Form("")) -> RedirectResponse:
+def admin_inventory_import(request: Request, csv_text: str = Form("")):
     user = _load_user(get_current_user_id(request))
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -636,7 +638,7 @@ def admin_qr_zip(
     ids: str = Form(""),
     size: int = Form(10),
     border: int = Form(4),
-) -> StreamingResponse:
+):
     user = _load_user(get_current_user_id(request))
     if not user:
         return RedirectResponse(url="/login", status_code=303)
@@ -662,7 +664,7 @@ def admin_qr_zip(
                 border=max(1, min(int(border), 10)),
             )
             qr.add_data(url)
-            qr.make(fit=True)
+            qr.make(True)
             img: PilImage = qr.make_image(fill_color="black", back_color="white")
             buf = io.BytesIO()
             img.save(buf, format="PNG")
@@ -673,7 +675,7 @@ def admin_qr_zip(
 
 
 @app.get("/qr/{shortid}")
-def qr_code(shortid: str, size: int = 10, border: int = 4) -> StreamingResponse:
+def qr_code(shortid: str, size: int = 10, border: int = 4):
     with get_session() as session:
         tag = session.exec(select(Tag).where(Tag.shortid == shortid)).first()
         if not tag:
@@ -687,7 +689,7 @@ def qr_code(shortid: str, size: int = 10, border: int = 4) -> StreamingResponse:
         border=max(1, min(int(border), 10)),
     )
     qr.add_data(target_url)
-    qr.make(fit=True)
+    qr.make(True)
     img: PilImage = qr.make_image(fill_color="black", back_color="white")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -756,7 +758,7 @@ def api_options(request: Request) -> Dict:
 
 
 @app.get("/api/stats/{shortid}")
-def api_stats(shortid: str, days: int = 7) -> JSONResponse:
+def api_stats(shortid: str, days: int = 7):
     days = max(1, min(days, 90))
     with get_session() as session:
         tag = session.exec(select(Tag).where(Tag.shortid == shortid)).first()
@@ -781,7 +783,7 @@ def api_stats(shortid: str, days: int = 7) -> JSONResponse:
 
 
 @app.get("/stats/{shortid}", response_class=HTMLResponse)
-def stats_page(request: Request, shortid: str, days: int = 7) -> HTMLResponse | RedirectResponse:
+def stats_page(request: Request, shortid: str, days: int = 7):
     user_id = get_current_user_id(request)
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
