@@ -1,27 +1,65 @@
-# Super NFC
-
-NFC etiketi okutulduğunda kullanıcıya ait kartvizit/iletişim sayfasını gösteren platform.
-
-## Özellikler
-- Sağda açılır/kapanır Options sidebar
-- Her tag için sabit ID (site + server + tag üzerinde)
-- NFC okutulmadan kayıt yok; giriş mümkün
-- Hesaplar tag ID’ye atanır
-- Kartvizit/iletişim sayfası (foto, logo, sosyal ikonlar)
-- Çoklu sunucu desteği
-
-### Options Sidebar Kullanımı
-- Sayfanın sağ altındaki "Seçenekleri Aç" butonu ile paneli açabilir, ESC ile hızla kapatabilirsiniz.
-- Panel açıkken odak içeride kalır; TAB ve SHIFT+TAB ile seçenekler arasında dolaşabilirsiniz.
-- Mobilde panel ekranın altından çekmece olarak açılır, masaüstünde sağdan kayar.
-
-## Geliştirme
-- (Proje stack’i ve çalıştırma adımları buraya gelecek)
-
-sunucuyu başlatmak için şu adımları izle 
-cmd komutları 
-1- cd C:\Users\Hp\Documents\nfc-tag-dashboard
-(önce kütüphaneleri yükle)
-2- pip install -r requirements.txt
-(uvicorn un aktif olduğundan emin ol)
-3- uvicorn main:app --reload --host 0.0.0.0 --port 8000
+diff --git a/README.md b/README.md
+index 015922e4bf97fd20abf9fd28290037393c27c24d..a99b6a2ea10a685e89f5347633de98734617ffd1 100644
+--- a/README.md
++++ b/README.md
+@@ -1,22 +1,40 @@
+ # Super NFC
+ 
+-NFC etiketi okutuldu??unda kullan??c??ya ait kartvizit/ileti??im sayfas??n?? g??steren platform.
+-
+-## ??zellikler
+-- Sa??da a????l??r/kapan??r Options sidebar
+-- Her tag i??in sabit ID (site + server + tag ??zerinde)
+-- NFC okutulmadan kay??t yok; giri?? m??mk??n
+-- Hesaplar tag ID???ye atan??r
+-- Kartvizit/ileti??im sayfas?? (foto, logo, sosyal ikonlar)
+-- ??oklu sunucu deste??i
+-
+-## Geli??tirme
+-- (Proje stack???i ve ??al????t??rma ad??mlar?? buraya gelecek)
+-
+-sunucuyu ba??latmak i??in ??u ad??mlar?? izle 
+-cmd komutlar?? 
+-1- cd C:\Users\Hp\Documents\nfc-tag-dashboard
+-(??nce k??t??phaneleri y??kle)
+-2- pip install -r requirements.txt
+-(uvicorn un aktif oldu??undan emin ol)
+-3- uvicorn main:app --reload --host 0.0.0.0 --port 8000
++Super NFC, NFC tag'lar?? okutuldu??unda kullan??c??lar??n dijital kartvizit bilgilerini sunan hafif bir FastAPI uygulamas??d??r. Her tag, site ve sunucu kodlar??yla birle??en sabit bir kimli??e sahiptir; b??ylece ??ok sunuculu ortamlarda bile g??venle ????z??mlenebilir.
++
++## Temel Ak????
++1. NFC tag okutuldu??unda istemci `https://.../card/<tagId>` adresine y??nlenir.
++2. Tag hen??z atanmad??ysa kullan??c?? `/register?tagId=<tagId>` formuna giderek kay??t olu??turur.
++3. Kay??t esnas??nda hesap tag'e kal??c?? olarak ba??lan??r; ayn?? tag ba??ka hesaba ta????namaz.
++4. Giri?? yapan kullan??c??lar `/me` ekran??ndan kartvizit bilgilerini d??zenler.
++5. Her okutma `card` sayfas??n?? a??ar ve avatar, logo, sosyal a?? ikonlar?? ile IBAN bilgilerini g??sterir.
++
++## REST U?? Noktalar??
++| Metot | Yol | A????klama |
++|-------|-----|----------|
++| `POST` | `/auth/register?tagId=...` | NFC tag'i okutmu?? kullan??c?? i??in hesap olu??turur ve tag'i kal??c?? olarak ili??kilendirir. |
++| `POST` | `/auth/login` | E-posta / parola ile oturum a??ar. |
++| `POST` | `/auth/logout` | Oturumu kapat??r. |
++| `GET` | `/card/{tagId}` | Kart verilerini d??ner. `Accept: application/json` ba??l?????? g??nderilirse JSON d??ner, aksi halde HTML kart dizilimi render edilir. |
++| `PUT` | `/me/profile` | Oturum a??m???? kullan??c??n??n kartvizit bilgilerini g??nceller. |
++
++> **Not:** Kay??t (register) u?? noktas?? i??in tag ID zorunludur; bu u?? nokta NFC okutmas?? olmadan ??a??r??lamaz. Ba??ar??l?? bir kay??t sonras?? tag ba??ka hesaba atanamaz.
++
++## Do??rulama ve Oran S??n??r??
++- Parolalar en az 8 karakter olmal??d??r.
++- T??m URL alanlar?? (LinkedIn, Facebook vb.) do??rulan??r ve bo?? b??rak??labilir.
++- `/auth/login` ve `/auth/register` u?? noktalar?? temel bir IP ba????na h??z s??n??r?? (60 saniyede 10 ve 5 istek) uygular.
++
++## Aray??zler
++- Kart sayfas?? profil foto??raf??n??, logo alan??n?? ve LinkedIn, Facebook, Instagram, WhatsApp ikonlar??n?? i??erir.
++- Profil d??zenleme ekran?? yaln??zca giri?? yapan kullan??c??lar i??in eri??ilebilir.
++
++## ??al????t??rma
++```bash
++python -m venv .venv
++source .venv/bin/activate  # Windows i??in .venv\\Scripts\\activate
++pip install -r requirements.txt
++uvicorn main:app --reload --host 0.0.0.0 --port 8000
++```
++
++SQLite veritaban?? `app.db` dosyas??nda saklan??r ve uygulama a????l??????nda gerekli kolonlar otomatik olarak eklenir.
