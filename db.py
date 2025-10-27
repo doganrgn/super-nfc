@@ -1,8 +1,4 @@
-diff --git a/db.py b/db.py
-index 3a6285d35ad0f4e1407b2a5cd2ef25b065d0b844..88e405d582eeee80e0b187c2d52f9021cdabf79c 100644
---- a/db.py
-+++ b/db.py
-@@ -1,69 +1,76 @@
+
  # db.py
  from datetime import datetime
  from typing import Optional
