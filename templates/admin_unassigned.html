@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🗂️ Sahiplenilmemiş Tag’ler</h2>
+
+<!-- Toplu QR ZIP formu -->
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">Envanter Yükle (CSV / satır satır shortid)</h5>
+    <form method="post" action="/admin/inventory_import" class="d-grid gap-2">
+      <textarea name="csv_text" rows="5" class="form-control" placeholder="shortid
+shortid2
+shortid3"></textarea>
+      <button class="btn btn-primary">Envantere Ekle</button>
+    </form>
+    {% if request.query_params.get('import_ok') %}
+      <div class="alert alert-success mt-2">
+        Eklendi: {{ request.query_params.get('import_ok') }}, Geçildi: {{ request.query_params.get('skip') }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+{% if tags %}
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>ShortID</th>
+          <th>Oluşturulma</th>
+          <th>Aksiyon</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in tags %}
+        <tr>
+          <td><code>{{ t.shortid }}</code></td>
+          <td>{{ t.created_at }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="/t/{{ t.shortid }}" target="_blank" rel="noopener">Görüntüle</a>
+            <a class="btn btn-sm btn-outline-secondary" href="/qr/{{ t.shortid }}" target="_blank" rel="noopener">Tekil QR</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">Boşta tag yok.</div>
+{% endif %}
+{% endblock %}

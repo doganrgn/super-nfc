@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-3">✏️ Tag Düzenle: {{ tag_id }}</h2>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+    <form action="/edit/{{ tag_id }}" method="post" enctype="multipart/form-data" class="d-grid gap-3">
+      <div>
+        <label class="form-label">Başlık</label>
+        <input type="text" name="title" value="{{ p.title if p else '' }}" class="form-control">
+      </div>
+
+      <div>
+        <label class="form-label">Açıklama</label>
+        <textarea name="description" rows="5" class="form-control">{{ p.description if p else '' }}</textarea>
+      </div>
+
+      <div>
+        <label class="form-label">Bağlantı (URL)</label>
+        <input type="url" name="link" value="{{ p.link if p else '' }}" class="form-control" placeholder="https://...">
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Telefon</label>
+          <input type="text" name="phone" value="{{ p.phone if p else '' }}" class="form-control" placeholder="+90 ...">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">E-posta (görüntülenecek)</label>
+          <input type="email" name="public_email" value="{{ p.public_email if p else '' }}" class="form-control" placeholder="ornek@site.com">
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Instagram</label>
+          <input type="text" name="instagram" value="{{ p.instagram if p else '' }}" class="form-control" placeholder="@kullanici veya https://instagram.com/...">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">LinkedIn</label>
+          <input type="text" name="linkedin" value="{{ p.linkedin if p else '' }}" class="form-control" placeholder="https://linkedin.com/in/...">
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="mb-2">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="text-muted">Hazır renkler:</span>
+            <button type="button" class="btn btn-sm" style="background:#2563eb;color:#fff" onclick="setTheme('#2563eb')">Mavi</button>
+            <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="setTheme('#ef4444')">Kırmızı</button>
+            <button type="button" class="btn btn-sm" style="background:#10b981;color:#fff" onclick="setTheme('#10b981')">Yeşil</button>
+            <button type="button" class="btn btn-sm" style="background:#a855f7;color:#fff" onclick="setTheme('#a855f7')">Mor</button>
+            <button type="button" class="btn btn-sm" style="background:#f59e0b;color:#fff" onclick="setTheme('#f59e0b')">Turuncu</button>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label">Tema Rengi</label>
+          <input type="color" name="theme_color" value="{{ p.theme_color if p and p.theme_color else '#2563eb' }}" class="form-control form-control-color">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Görsel (jpg/png/webp)</label>
+          <input type="file" name="image" accept="image/*" class="form-control" onchange="previewImage(this)">
+        </div>
+      </div>
+
+      <div class="mt-2">
+        {% if p and p.image_url %}
+          <img id="imgPreview" src="{{ p.image_url }}" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:8px;">
+        {% else %}
+          <img id="imgPreview" style="display:none;max-width:100%;height:auto;border:1px solid #eee;border-radius:8px;">
+        {% endif %}
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Kaydet</button>
+        <a href="/t/{{ tag_id }}" class="btn btn-outline-secondary">Tag sayfasına dön</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function previewImage(input){
+  const img = document.getElementById('imgPreview');
+  const file = input.files && input.files[0];
+  if(!file){ img.style.display='none'; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function setTheme(hex){
+  const inp = document.querySelector('input[name="theme_color"]');
+  if(!inp) return;
+  inp.value = hex;
+}
+</script>
+{% endblock %}

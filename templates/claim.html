@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Tag Sahiplen: {{ shortid }}</h2>
+{% if error %}<p class="err">{{ error }}</p>{% endif %}
+<form method="post">
+  <p>Bu tag'i hesabınıza atamak için onaylayın.</p>
+  <button type="submit">Sahiplen</button>
+</form>
+{% endblock %}

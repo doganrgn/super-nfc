@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% set color = (p.theme_color if p and p.theme_color else '#2563eb') %}
+<style>
+  .theme-head { background: {{ color }}; color: #fff; }
+  .btn-theme { background: {{ color }}; border-color: {{ color }}; color: #fff; }
+  .btn-theme:hover { filter: brightness(0.9); color: #fff; }
+  .contact-list a { text-decoration: none; }
+  .contact-item { display:flex; align-items:center; gap:.5rem; margin:.25rem 0; }
+  .contact-item i { font-size:1.1rem; width:1.25rem; text-align:center; opacity:.9; }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <div class="card shadow-sm">
+
+      <div class="theme-head p-3 rounded-top d-flex align-items-center justify-content-between">
+        <h3 class="m-0">{{ (p.title if p else "") or "Başlık yok" }}</h3>
+        {% if p and p.link %}
+          <a href="{{ p.link }}" target="_blank" rel="noopener" class="btn btn-light btn-sm">
+            <i class="bi bi-link-45deg"></i> Bağlantı
+          </a>
+        {% endif %}
+      </div>
+
+      {% if p and p.image_url %}
+        <img src="{{ p.image_url }}" class="card-img-top" alt="image">
+      {% endif %}
+
+      {% if p is none %}
+		<div class="alert alert-warning">
+			Bu tag henüz aktive edilmemiş görünüyor. <a href="/claim-info/{{ tag_id }}">Şimdi aktive et</a>
+		</div>
+	  {% endif %}
+
+	  <div class="card-body">
+        <p class="card-text">{{ (p.description if p else "") or "Açıklama yok." }}</p>
+
+        <div class="mt-3 contact-list">
+          {% if p and p.phone %}
+            <div class="contact-item">
+              <i class="bi bi-telephone"></i>
+              <a href="tel:{{ p.phone }}">{{ p.phone }}</a>
+            </div>
+          {% endif %}
+          {% if p and p.public_email %}
+            <div class="contact-item">
+              <i class="bi bi-envelope"></i>
+              <a href="mailto:{{ p.public_email }}">{{ p.public_email }}</a>
+            </div>
+          {% endif %}
+          {% if p and p.instagram %}
+            <div class="contact-item">
+              <i class="bi bi-instagram"></i>
+              <a href="{{ p.instagram if 'http' in p.instagram else 'https://instagram.com/' ~ p.instagram.lstrip('@') }}"
+                 target="_blank" rel="noopener">
+                {{ p.instagram }}
+              </a>
+            </div>
+          {% endif %}
+          {% if p and p.linkedin %}
+            <div class="contact-item">
+              <i class="bi bi-linkedin"></i>
+              <a href="{{ p.linkedin }}" target="_blank" rel="noopener">{{ p.linkedin }}</a>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mt-3">
+          <a href="/claim-info/{{ tag_id }}" class="btn btn-outline-secondary ms-2">Bu tag'i sahiplen</a>
+          <a href="/qr/{{ tag_id }}" class="btn btn-outline-secondary ms-2" target="_blank" rel="noopener">
+            <i class="bi bi-qr-code"></i> QR
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm border-0" style="background:#f8fafc;">
+      <div class="card-body text-center">
+        <div style="font-size:64px; line-height:1;">🧭</div>
+        <h3 class="mt-2">Tag Bulunamadı</h3>
+        <p class="text-muted">
+          <code>/t/{{ shortid }}</code> için bir kayıt bulunamadı. Bu, etiketin henüz üretim envanterine eklenmediği ya da yanlış bir URL okuttuğunuz anlamına gelebilir.
+        </p>
+
+        <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
+          <a href="{{ purchase_url }}" class="btn btn-primary" target="_blank" rel="noopener">Satın Al / Yeniden Edin</a>
+          <a href="mailto:{{ support_email }}" class="btn btn-outline-secondary">Destek ile İletişim</a>
+          <a href="/" class="btn btn-light">Anasayfa</a>
+        </div>
+
+        <hr class="my-4">
+        <p class="small text-muted mb-0">Eğer elinizde fiziksel bir tag varsa, lütfen üretici/tedarikçi ile iletişime geçin ve shortid/UID bilgisini paylaşın.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

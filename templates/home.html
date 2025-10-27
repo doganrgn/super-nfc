@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <h1 class="page-title mb-3">🎯 NFC Tag Projesi</h1>
+    <p class="lead">NFC etiketini okut, web profilini yönet, linklerini, görsellerini ve bilgilerini dilediğin zaman güncelle.</p>
+
+    <div class="alert alert-info">
+      Örnek tag sayfası: <a href="/t/deneme123" class="alert-link">/t/deneme123</a><br>
+      Bu tag'i sahiplenmek için giriş yap ve <a href="/claim/deneme123" class="alert-link">/claim/deneme123</a> adresine git.
+    </div>
+
+    {% if not user_id %}
+      <a href="/register" class="btn btn-primary me-2">Kayıt Ol</a>
+      <a href="/login" class="btn btn-outline-primary">Giriş Yap</a>
+    {% else %}
+      <a href="/dashboard" class="btn btn-primary">Panelime Git</a>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Nasıl Çalışır?</h5>
+        <ol class="mb-0">
+          <li>Etikete kısa URL yazılır: <code>/t/&lt;shortid&gt;</code></li>
+          <li>Etiket okutulunca profil sayfası açılır</li>
+          <li>Sahibi, panelden içerikleri düzenler</li>
+          <li>Tüm değişiklikler anında yayına yansır</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

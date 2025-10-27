@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <!-- Sol ana içerik -->
+  <div class="col-12 col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2>Kontrol Paneli</h2>
+      <div class="d-flex gap-2">
+        <form id="genForm" method="post" action="/admin/generate" class="d-flex gap-2">
+		  <input ...>
+		  <button ...>Seri Tag Üret (CSV)</button>
+		</form>
+
+        <a href="/admin/unassigned" class="btn btn-sm btn-outline-secondary">Boş Tag’ler</a>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      {% if tags %}
+        {% for t in tags %}
+        <div class="col-12 col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ t.shortid }}</h5>
+              <p class="card-text">Görüntülenme: <strong>{{ t.count }}</strong></p>
+              <a href="/t/{{ t.shortid }}" class="btn btn-sm btn-primary" target="_blank" rel="noopener">Görüntüle</a>
+              <a href="/edit/{{ t.shortid }}" class="btn btn-sm btn-outline-primary">Düzenle</a>
+              <a href="/stats/{{ t.shortid }}" class="btn btn-sm btn-outline-secondary">İstatistik</a>
+              <a href="/qr/{{ t.shortid }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">QR</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12">
+          <div class="alert alert-info">Henüz sahip olduğunuz tag yok.</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sağ Seçenekler Paneli -->
+  <div class="col-12 col-lg-4">
+    <div id="optionsPanel" class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Seçenekler</h5>
+        <ul id="optionsList" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadOptions(){
+  const res = await fetch('/api/options');
+  const data = await res.json();
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  (data.options || []).forEach(opt => {
+    const li = document.createElement('li');
+    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+    li.innerHTML = `<a href="${opt.url}" class="text-decoration-none">${opt.name}</a>`;
+    list.appendChild(li);
+  });
+}
+loadOptions();
+</script>
+{% endblock %}
