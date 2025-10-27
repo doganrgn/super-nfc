@@ -78,7 +78,6 @@ index 3a6285d35ad0f4e1407b2a5cd2ef25b065d0b844..88e405d582eeee80e0b187c2d52f9021
      SQLModel.metadata.create_all(engine)
      ensure_profile_columns()
  
- from sqlmodel import Session
  
  def get_session():
      # commit sonrası objeleri expire etme → template'te rahatça kullan
