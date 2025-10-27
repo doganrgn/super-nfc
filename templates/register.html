@@ -1,26 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- // CODEx: NFC taraması olmadan kayıt yapılmasını engelliyoruz -->
 <div class="row justify-content-center">
   <div class="col-12 col-md-6 col-lg-4">
     <h2 class="mb-3">Kayıt Ol</h2>
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
 
     <form method="post" class="d-grid gap-3">
+      <input type="hidden" name="pending_shortid" value="{{ pending_shortid or '' }}">
+      <input type="hidden" name="next_url" value="{{ next_url or '/dashboard' }}">
+
+      <div class="alert alert-info" role="alert">
+        <strong>{{ pending_shortid or '—' }}</strong> etiketiyle eşleşecek bir hesap oluşturuyorsunuz.
+      </div>
+
       <div>
-        <label class="form-label">İsim (opsiyonel)</label>
-        <input name="name" type="text" class="form-control">
+        <label class="form-label">Ad Soyad (opsiyonel)</label>
+        <input name="name" type="text" class="form-control" value="{{ request.query_params.get('name', '') }}">
       </div>
       <div>
         <label class="form-label">E-posta</label>
-        <input name="email" type="email" class="form-control" required>
+        <input name="email" type="email" class="form-control" required {% if not pending_shortid %}disabled{% endif %}>
       </div>
       <div>
         <label class="form-label">Parola</label>
-        <input name="password" type="password" class="form-control" required>
+        <input name="password" type="password" class="form-control" required {% if not pending_shortid %}disabled{% endif %}>
       </div>
-      <button class="btn btn-primary">Kaydol</button>
+      <button class="btn btn-primary" {% if not pending_shortid %}disabled{% endif %}>Kaydol</button>
     </form>
 
-    <p class="mt-3 text-muted">Zaten üye misin? <a href="/login">Giriş</a></p>
+    <p class="mt-3 text-muted">Zaten üye misin? <a href="/login{% if pending_shortid %}?next=/claim/{{ pending_shortid }}{% endif %}">Giriş</a></p>
   </div>
 </div>
 {% endblock %}

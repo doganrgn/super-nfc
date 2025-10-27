@@ -6,6 +6,8 @@
   const closeButtons = Array.from(root.querySelectorAll('[data-options-sidebar-close]'));
   const container = root.querySelector('[data-options-sidebar-panel]');
   const backdrop = root.querySelector('[data-options-sidebar-backdrop]');
+  const contentHost = root.querySelector('[data-options-sidebar-content]');
+  const loadingNode = root.querySelector('[data-options-sidebar-loading]');
   const focusableSelectors = [
     'a[href]',
     'button:not([disabled])',
@@ -60,7 +62,7 @@
       document.removeEventListener('keydown', onKeydown);
       container.removeEventListener('keydown', onContainerKeydown);
       if (lastFocused) {
-        (lastFocused).focus?.();
+        lastFocused.focus?.();
       }
     }
   };
@@ -77,10 +79,68 @@
     }
   };
 
+  const renderSections = (data) => {
+    if (!contentHost) return;
+    contentHost.innerHTML = '';
+    if (!data || !Array.isArray(data.sections) || !data.sections.length) {
+      contentHost.innerHTML = '<p class="text-muted">Gösterilecek seçenek bulunamadı.</p>';
+      return;
+    }
+
+    data.sections.forEach((section) => {
+      const wrapper = document.createElement('section');
+      wrapper.className = 'options-sidebar__section';
+      if (section.title) {
+        const heading = document.createElement('h3');
+        heading.textContent = section.title;
+        wrapper.appendChild(heading);
+      }
+      if (section.items && section.items.length) {
+        const list = document.createElement('ul');
+        list.className = 'list-unstyled options-sidebar__list';
+        section.items.forEach((item) => {
+          const li = document.createElement('li');
+          const anchor = document.createElement('a');
+          anchor.className = 'options-sidebar__link';
+          anchor.href = item.url || '#';
+          anchor.innerHTML = `
+            <i class="bi bi-${item.icon || 'dot'}"></i>
+            <span>${item.name || 'Seçenek'}</span>
+          `;
+          li.appendChild(anchor);
+          list.appendChild(li);
+        });
+        wrapper.appendChild(list);
+      }
+      contentHost.appendChild(wrapper);
+    });
+  };
+
+  const showError = (message) => {
+    if (!contentHost) return;
+    contentHost.innerHTML = `<div class="alert alert-warning">${message}</div>`;
+  };
+
+  const loadOptions = async () => {
+    if (loadingNode) loadingNode.style.display = 'block';
+    try {
+      const response = await fetch('/api/options');
+      if (!response.ok) throw new Error('Seçenekler alınamadı');
+      const data = await response.json();
+      renderSections(data);
+    } catch (err) {
+      console.error('Options sidebar error', err);
+      showError('Seçenekler yüklenemedi. Lütfen daha sonra tekrar deneyin.');
+    } finally {
+      if (loadingNode) loadingNode.style.display = 'none';
+    }
+  };
+
   openBtn?.addEventListener('click', () => setOpenState(true));
   closeButtons.forEach((btn) => btn.addEventListener('click', () => setOpenState(false)));
   backdrop?.addEventListener('click', () => setOpenState(false));
-
-  // Close when focus leaves via some other mechanism (e.g. history back)
   window.addEventListener('popstate', () => setOpenState(false));
+
+  loadOptions();
 })();
+// CODEx: Sidebar seçenekleri dinamik olarak besleniyor

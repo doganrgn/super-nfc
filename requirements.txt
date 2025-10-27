@@ -1,10 +1,10 @@
-fastapi==0.115.0         #API ve web sunucumuz
-uvicorn==0.30.6          #FastAPI’yi çalıştıran hafif sunucu
-python-multipart==0.0.9  #dosya yüklemelerini destekler
-jinja2==3.1.4            #basit HTML sayfaları göstermek için şablon motoru
-
-sqlmodel==0.0.22         #SQLAlchemy + Pydantic birleşimi, sade ORM
-passlib[bcrypt]==1.7.4   #parolaları güvenli saklamak için
-itsdangerous==2.2.0      #imzalı çerez üretmek/doğrulamak için
-
-qrcode[pil]==7.4.2
+# // CODEx: Bağımlılık sürümlerini proje dokümanına göre sabitliyoruz
+fastapi==0.115.0
+uvicorn==0.30.6
+python-multipart==0.0.9
+sqlmodel==0.0.22
+passlib[bcrypt]==1.7.4
+qrcode==7.4.2
+jinja2==3.1.4
+itsdangerous==2.2.0
+pillow==10.4.0

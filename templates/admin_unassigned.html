@@ -1,25 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>🗂️ Sahiplenilmemiş Tag’ler</h2>
+<!-- // CODEx: Admin envanter araçlarını güncelliyoruz -->
+<h2 class="mb-4">🗂️ Sahiplenilmemiş Tag’ler</h2>
 
-<!-- Toplu QR ZIP formu -->
-<div class="card mb-3">
-  <div class="card-body">
-    <h5 class="card-title">Envanter Yükle (CSV / satır satır shortid)</h5>
-    <form method="post" action="/admin/inventory_import" class="d-grid gap-2">
-      <textarea name="csv_text" rows="5" class="form-control" placeholder="shortid
-shortid2
-shortid3"></textarea>
-      <button class="btn btn-primary">Envantere Ekle</button>
-    </form>
-    {% if request.query_params.get('import_ok') %}
-      <div class="alert alert-success mt-2">
-        Eklendi: {{ request.query_params.get('import_ok') }}, Geçildi: {{ request.query_params.get('skip') }}
+<div class="row g-4">
+  <div class="col-12 col-xl-6" id="csv">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">CSV ile Envantere Ekle</h5>
+        <p class="text-muted">Her satıra veya virgülle ayrılmış biçimde shortid girin.</p>
+        <form method="post" action="/admin/inventory_import" class="d-grid gap-2">
+          <textarea name="csv_text" rows="5" class="form-control" placeholder="shortid1\nshortid2"></textarea>
+          <button class="btn btn-primary">Envantere Ekle</button>
+        </form>
+        {% if request.query_params.get('import_ok') %}
+          <div class="alert alert-success mt-3">
+            Eklendi: {{ request.query_params.get('import_ok') }}, Geçildi: {{ request.query_params.get('skip') }}
+          </div>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-6" id="qr">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Toplu QR ZIP Oluştur</h5>
+        <p class="text-muted">Shortid listesini girin; sistem doğrulanan etiketler için PNG QR kodlarını ZIP olarak indirir.</p>
+        <form method="post" action="/admin/qrzip" class="d-grid gap-2">
+          <textarea name="ids" rows="5" class="form-control" placeholder="shortid1 shortid2"></textarea>
+          <div class="row g-2">
+            <div class="col">
+              <label class="form-label">Kutu Boyutu</label>
+              <input type="number" name="size" value="10" min="1" max="20" class="form-control">
+            </div>
+            <div class="col">
+              <label class="form-label">Kenar</label>
+              <input type="number" name="border" value="4" min="1" max="10" class="form-control">
+            </div>
+          </div>
+          <button class="btn btn-outline-primary">QR ZIP İndir</button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
+<hr class="my-4">
 
 {% if tags %}
   <div class="table-responsive">
@@ -32,20 +59,20 @@ shortid3"></textarea>
         </tr>
       </thead>
       <tbody>
-      {% for t in tags %}
-        <tr>
-          <td><code>{{ t.shortid }}</code></td>
-          <td>{{ t.created_at }}</td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary" href="/t/{{ t.shortid }}" target="_blank" rel="noopener">Görüntüle</a>
-            <a class="btn btn-sm btn-outline-secondary" href="/qr/{{ t.shortid }}" target="_blank" rel="noopener">Tekil QR</a>
-          </td>
-        </tr>
-      {% endfor %}
+        {% for t in tags %}
+          <tr>
+            <td><code>{{ t.shortid }}</code></td>
+            <td>{{ t.created_at }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="/t/{{ t.shortid }}" target="_blank" rel="noopener">Görüntüle</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/qr/{{ t.shortid }}" target="_blank" rel="noopener">Tekil QR</a>
+            </td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
 {% else %}
-  <div class="alert alert-info">Boşta tag yok.</div>
+  <div class="alert alert-success">Şu anda tüm tag’ler atanmış görünüyor.</div>
 {% endif %}
 {% endblock %}
