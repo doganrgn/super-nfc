@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row g-4">
+<!-- // CODEx: Ana sayfada yeni akışı özetliyoruz -->
+<div class="row g-4 align-items-start">
   <div class="col-12 col-lg-7">
-    <h1 class="page-title mb-3">🎯 NFC Tag Projesi</h1>
-    <p class="lead">NFC etiketini okut, web profilini yönet, linklerini, görsellerini ve bilgilerini dilediğin zaman güncelle.</p>
+    <h1 class="page-title mb-3">🎯 Super NFC Dashboard</h1>
+    <p class="lead">Fiziksel NFC etiketinizi okutun, dijital kartvizitinizi anında yönetin.</p>
 
     <div class="alert alert-info">
-      Örnek tag sayfası: <a href="/t/deneme123" class="alert-link">/t/deneme123</a><br>
-      Bu tag'i sahiplenmek için giriş yap ve <a href="/claim/deneme123" class="alert-link">/claim/deneme123</a> adresine git.
+      <strong>Nasıl çalışır?</strong>
+      <ol class="mb-0">
+        <li>NFC etiketi telefonunuzla okutun, <code>/t/&lt;shortid&gt;</code> sayfası açılır.</li>
+        <li>Sayfadaki <em>Aktivasyon</em> butonundan giriş veya kayıt adımını tamamlayın.</li>
+        <li>Tag hesabınıza atanır ve <strong>Kontrol Paneli</strong>'nden dilediğiniz zaman güncellersiniz.</li>
+      </ol>
     </div>
 
     {% if not user_id %}
-      <a href="/register" class="btn btn-primary me-2">Kayıt Ol</a>
+      <a href="{{ purchase_url }}" class="btn btn-primary me-2" target="_blank" rel="noopener">Tag Satın Al</a>
       <a href="/login" class="btn btn-outline-primary">Giriş Yap</a>
     {% else %}
       <a href="/dashboard" class="btn btn-primary">Panelime Git</a>
@@ -21,13 +26,12 @@
   <div class="col-12 col-lg-5">
     <div class="card shadow-sm">
       <div class="card-body">
-        <h5 class="card-title">Nasıl Çalışır?</h5>
-        <ol class="mb-0">
-          <li>Etikete kısa URL yazılır: <code>/t/&lt;shortid&gt;</code></li>
-          <li>Etiket okutulunca profil sayfası açılır</li>
-          <li>Sahibi, panelden içerikleri düzenler</li>
-          <li>Tüm değişiklikler anında yayına yansır</li>
-        </ol>
+        <h5 class="card-title">Öne Çıkan Özellikler</h5>
+        <ul class="mb-0">
+          <li>Ad Soyad, sosyal ağlar, WhatsApp ve IBAN bilgilerini tek sayfada göster.</li>
+          <li>Canlı istatistik grafikleri ile günlük tıklamaları takip et.</li>
+          <li>QR kodlarını tek tıkla indir, çoklu üretim için admin araçlarını kullan.</li>
+        </ul>
       </div>
     </div>
   </div>

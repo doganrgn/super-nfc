@@ -36,39 +36,20 @@
     </header>
 
     <div class="options-sidebar__body">
-      <section class="options-sidebar__section">
-        <h3>Profil</h3>
-        <p>Profil kartvizitini zenginleştirmek için aşağıdaki seçenekleri kullan.</p>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="sidebarShowPhoto" checked>
-          <label class="form-check-label" for="sidebarShowPhoto">Profil fotoğrafını göster</label>
+      <!-- // CODEx: Menü öğeleri /api/options çıktısı ile dolduruluyor -->
+      <div class="options-sidebar__content" data-options-sidebar-content>
+        <div class="text-center text-muted py-4" data-options-sidebar-loading>
+          <div class="spinner-border text-primary mb-3" role="status"></div>
+          <p class="mb-0">Seçenekler yükleniyor...</p>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="sidebarShowSocial">
-          <label class="form-check-label" for="sidebarShowSocial">Sosyal medya ikonlarını gizle</label>
-        </div>
-      </section>
-
-      <section class="options-sidebar__section">
-        <h3>Bildirimler</h3>
-        <p>Tag okutulduğunda e-posta veya push bildirimi al.</p>
-        <ul>
-          <li>Günlük özet e-postası</li>
-          <li>Anlık push bildirimi (beta)</li>
-        </ul>
-      </section>
-
-      <section class="options-sidebar__section">
-        <h3>Destek</h3>
-        <p>Soruların için <a href="mailto:destek@example.com">destek@example.com</a> adresine yaz.</p>
-      </section>
+      </div>
     </div>
 
     <footer class="options-sidebar__footer">
       <button type="button" class="btn btn-outline-secondary" data-options-sidebar-close>
         Vazgeç
       </button>
-      <button type="button" class="btn btn-primary">Kaydet</button>
+      <a href="mailto:{{ SUPPORT_EMAIL | default('destek@example.com') }}" class="btn btn-primary">Destek</a>
     </footer>
   </aside>
 </div>

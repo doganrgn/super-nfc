@@ -1,75 +1,97 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- // CODEx: Tüm kartvizit alanlarını düzenlenebilir hale getiriyoruz -->
 <h2 class="mb-3">✏️ Tag Düzenle: {{ tag_id }}</h2>
 
 <div class="row">
   <div class="col-12 col-lg-8">
     <form action="/edit/{{ tag_id }}" method="post" enctype="multipart/form-data" class="d-grid gap-3">
-      <div>
-        <label class="form-label">Başlık</label>
-        <input type="text" name="title" value="{{ p.title if p else '' }}" class="form-control">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Ad Soyad</label>
+          <input type="text" name="full_name" value="{{ profile.full_name or '' }}" class="form-control" required>
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Unvan / Başlık</label>
+          <input type="text" name="title" value="{{ profile.title or '' }}" class="form-control">
+        </div>
       </div>
 
       <div>
-        <label class="form-label">Açıklama</label>
-        <textarea name="description" rows="5" class="form-control">{{ p.description if p else '' }}</textarea>
+        <label class="form-label">Kısa Tanım</label>
+        <textarea name="description" rows="4" class="form-control">{{ profile.description or '' }}</textarea>
       </div>
 
       <div>
-        <label class="form-label">Bağlantı (URL)</label>
-        <input type="url" name="link" value="{{ p.link if p else '' }}" class="form-control" placeholder="https://...">
+        <label class="form-label">Web Sitesi</label>
+        <input type="url" name="link" value="{{ profile.link or '' }}" class="form-control" placeholder="https://...">
       </div>
 
       <div class="row g-3">
         <div class="col-12 col-md-6">
           <label class="form-label">Telefon</label>
-          <input type="text" name="phone" value="{{ p.phone if p else '' }}" class="form-control" placeholder="+90 ...">
+          <input type="text" name="phone" value="{{ profile.phone or '' }}" class="form-control" placeholder="+90...">
         </div>
         <div class="col-12 col-md-6">
-          <label class="form-label">E-posta (görüntülenecek)</label>
-          <input type="email" name="public_email" value="{{ p.public_email if p else '' }}" class="form-control" placeholder="ornek@site.com">
+          <label class="form-label">WhatsApp</label>
+          <input type="text" name="whatsapp" value="{{ profile.whatsapp or '' }}" class="form-control" placeholder="90555...">
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">E-posta</label>
+          <input type="email" name="public_email" value="{{ profile.public_email or '' }}" class="form-control" placeholder="ornek@site.com">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">IBAN</label>
+          <input type="text" name="iban" value="{{ profile.iban or '' }}" class="form-control" placeholder="TR...">
         </div>
       </div>
 
       <div class="row g-3">
         <div class="col-12 col-md-6">
           <label class="form-label">Instagram</label>
-          <input type="text" name="instagram" value="{{ p.instagram if p else '' }}" class="form-control" placeholder="@kullanici veya https://instagram.com/...">
+          <input type="text" name="instagram" value="{{ profile.instagram or '' }}" class="form-control" placeholder="@kullanici veya https://instagram.com/...">
         </div>
         <div class="col-12 col-md-6">
           <label class="form-label">LinkedIn</label>
-          <input type="text" name="linkedin" value="{{ p.linkedin if p else '' }}" class="form-control" placeholder="https://linkedin.com/in/...">
+          <input type="text" name="linkedin" value="{{ profile.linkedin or '' }}" class="form-control" placeholder="https://linkedin.com/in/...">
         </div>
       </div>
 
       <div class="row g-3">
-        <div class="mb-2">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="text-muted">Hazır renkler:</span>
-            <button type="button" class="btn btn-sm" style="background:#2563eb;color:#fff" onclick="setTheme('#2563eb')">Mavi</button>
-            <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="setTheme('#ef4444')">Kırmızı</button>
-            <button type="button" class="btn btn-sm" style="background:#10b981;color:#fff" onclick="setTheme('#10b981')">Yeşil</button>
-            <button type="button" class="btn btn-sm" style="background:#a855f7;color:#fff" onclick="setTheme('#a855f7')">Mor</button>
-            <button type="button" class="btn btn-sm" style="background:#f59e0b;color:#fff" onclick="setTheme('#f59e0b')">Turuncu</button>
-          </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Facebook</label>
+          <input type="text" name="facebook" value="{{ profile.facebook or '' }}" class="form-control" placeholder="https://facebook.com/...">
         </div>
-
         <div class="col-12 col-md-6">
           <label class="form-label">Tema Rengi</label>
-          <input type="color" name="theme_color" value="{{ p.theme_color if p and p.theme_color else '#2563eb' }}" class="form-control form-control-color">
-        </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label">Görsel (jpg/png/webp)</label>
-          <input type="file" name="image" accept="image/*" class="form-control" onchange="previewImage(this)">
+          <input type="color" name="theme_color" value="{{ profile.theme_color or '#2563eb' }}" class="form-control form-control-color">
         </div>
       </div>
 
-      <div class="mt-2">
-        {% if p and p.image_url %}
-          <img id="imgPreview" src="{{ p.image_url }}" style="max-width:100%;height:auto;border:1px solid #eee;border-radius:8px;">
-        {% else %}
-          <img id="imgPreview" style="display:none;max-width:100%;height:auto;border:1px solid #eee;border-radius:8px;">
-        {% endif %}
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="text-muted">Hazır renkler:</span>
+        <button type="button" class="btn btn-sm" style="background:#2563eb;color:#fff" onclick="setTheme('#2563eb')">Mavi</button>
+        <button type="button" class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="setTheme('#ef4444')">Kırmızı</button>
+        <button type="button" class="btn btn-sm" style="background:#10b981;color:#fff" onclick="setTheme('#10b981')">Yeşil</button>
+        <button type="button" class="btn btn-sm" style="background:#a855f7;color:#fff" onclick="setTheme('#a855f7')">Mor</button>
+        <button type="button" class="btn btn-sm" style="background:#f59e0b;color:#fff" onclick="setTheme('#f59e0b')">Turuncu</button>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Profil Fotoğrafı / Logo</label>
+          <input type="file" name="image" accept="image/*" class="form-control" onchange="previewImage(this)">
+        </div>
+        <div class="col-12 col-md-6 d-flex align-items-center">
+          {% if profile.image_url %}
+            <img id="imgPreview" src="{{ profile.image_url }}" alt="Önizleme" class="img-fluid rounded" style="max-height:160px;">
+          {% else %}
+            <img id="imgPreview" class="img-fluid rounded" style="display:none;max-height:160px;">
+          {% endif %}
+        </div>
       </div>
 
       <div class="d-flex gap-2">

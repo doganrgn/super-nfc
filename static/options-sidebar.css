@@ -119,6 +119,41 @@
   margin-bottom: 0.45rem;
 }
 
+/* // CODEx: API tabanlı liste görünümlerini destekliyoruz */
+.options-sidebar__list {
+  margin: 0;
+  padding: 0;
+}
+
+.options-sidebar__list li {
+  list-style: none;
+  margin-bottom: 0.35rem;
+}
+
+.options-sidebar__list li:last-child {
+  margin-bottom: 0;
+}
+
+.options-sidebar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.2rem;
+  color: #1f2937;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.options-sidebar__link i {
+  color: #2563eb;
+}
+
+.options-sidebar__link:hover,
+.options-sidebar__link:focus {
+  text-decoration: none;
+  color: #1d4ed8;
+}
+
 .options-sidebar__footer {
   padding: 1.25rem 1.5rem;
   border-top: 1px solid rgba(203, 213, 225, 0.8);
