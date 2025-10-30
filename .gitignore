@@ -209,3 +209,8 @@ update.patch
 update.patch
 update.patch
 .Rhistory 
+__pycache__/
+*.pyc
+app.db
+uploads/
+.venv/
