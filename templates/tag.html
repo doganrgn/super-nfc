@@ -2,7 +2,6 @@
 {% block content %}
 {% set p = profile or {} %}
 {% set color = (p.theme_color if p.theme_color else '#2563eb') %}
-<!-- // CODEx: Profil kartında yeni alanları gösteriyoruz -->
 <style>
   .profile-header { background: {{ color }}; color: #fff; }
   .profile-header h3 { margin: 0; }
@@ -28,37 +27,7 @@
       <div class="card-body p-4">
         {% if p.description %}
           <p class="mb-4">{{ p.description }}</p>
-        {% else %}
-          <div class="alert alert-info">Bu profil henüz doldurulmamış. Etiket sahibinin bilgileri yakında burada yer alacak.</div>
-        {% endif %}
-
-        <div class="contact-list">
-          {% if p.link %}
-            <div class="contact-item">
-              <i class="bi bi-link-45deg"></i>
-              <a href="{{ p.link }}" target="_blank" rel="noopener">Web Sitesi</a>
-            </div>
-          {% endif %}
-          {% if p.public_email %}
-            <div class="contact-item">
-              <i class="bi bi-envelope"></i>
-              <a href="mailto:{{ p.public_email }}">{{ p.public_email }}</a>
-            </div>
-          {% endif %}
-          {% if p.phone %}
-            <div class="contact-item">
-              <i class="bi bi-telephone"></i>
-              <a href="tel:{{ p.phone }}">{{ p.phone }}</a>
-            </div>
-          {% endif %}
-          {% if p.whatsapp %}
-            <div class="contact-item">
-              <i class="bi bi-whatsapp"></i>
-              <a href="https://wa.me/{{ p.whatsapp|replace('+', '') }}" target="_blank" rel="noopener">WhatsApp</a>
-            </div>
-          {% endif %}
-          {% if p.instagram %}
-            <div class="contact-item">
+@@ -62,33 +61,44 @@
               <i class="bi bi-instagram"></i>
               <a href="{{ p.instagram }}" target="_blank" rel="noopener">Instagram</a>
             </div>
@@ -84,9 +53,20 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2 mt-4">
-          <a href="/claim-info/{{ tag_id }}" class="btn btn-outline-secondary">Bu Tag'i Sahiplen</a>
+          {% if is_owner %}
+            <a href="/edit/{{ tag_id }}" class="btn btn-outline-primary">Profili Düzenle</a>
+          {% else %}
+            <a href="/claim-info/{{ tag_id }}" class="btn btn-outline-secondary">Bu Tag'i Sahiplen</a>
+          {% endif %}
           <a href="/qr/{{ tag_id }}" class="btn btn-outline-secondary" target="_blank" rel="noopener"><i class="bi bi-qr-code"></i> QR</a>
         </div>
+
+        {% if is_owner and public_tag_url %}
+          <div class="alert alert-info mt-4 d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+            <div><i class="bi bi-link-45deg"></i> Sabit yönlendirme bağlantınız:</div>
+            <code class="mb-0">{{ public_tag_url }}</code>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

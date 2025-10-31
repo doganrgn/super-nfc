@@ -5,7 +5,7 @@ import secrets
 import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from fastapi import FastAPI
 from fastapi import File, Form, HTTPException, Request, UploadFile
@@ -16,7 +16,6 @@ from fastapi.responses import (
     RedirectResponse,
     StreamingResponse,
 )
-from fastapi import Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.sql import func
@@ -35,14 +34,15 @@ from auth import (
 )
 from db import Click, Profile, Tag, User, get_session, init_db
 
-# // CODEx: Konfigürasyon değerlerini merkezi hale getiriyoruz
+# Yollar & klasörler
 BASE_DIR = Path(__file__).parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 STATIC_DIR = BASE_DIR / "static"
 STATIC_DIR.mkdir(exist_ok=True)
 
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
+# Ortam değişkenleri
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").strip()
 PURCHASE_URL = os.getenv("PURCHASE_URL", "https://satin-al.example.com")
 SUPPORT_EMAIL = os.getenv("SUPPORT_EMAIL", "destek@example.com")
 _admin_defaults = {"doganrgn@gmail.com"}
@@ -50,26 +50,70 @@ ADMIN_EMAILS = {
     email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()
 } or _admin_defaults
 
-# // CODEx: Auth modülündeki SECRET_KEY'in yüklendiğini doğruluyoruz
+# Güvenlik: SECRET_KEY zorunlu
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY must be defined for session güvenliği")
 
-# // CODEx: FastAPI uygulaması ve şablon motoru kurulumu
+# FastAPI & template
 app = FastAPI()
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+# --- Public URL yardımcıları ---
+
+def _public_base_url_status() -> Tuple[Optional[str], Optional[str]]:
+    """
+    Temizlenmiş PUBLIC_BASE_URL ve varsa doğrulama uyarı mesajını döndürür.
+    """
+    value = PUBLIC_BASE_URL.strip()
+    if not value:
+        return None, (
+            "PUBLIC_BASE_URL ayarlı değil. Lütfen .env dosyanıza "
+            "PUBLIC_BASE_URL=https://ornek-subdomain.trycloudflare.com değerini ekleyin."
+        )
+    value = value.rstrip("/")
+    if not value.startswith("https://"):
+        return value, "PUBLIC_BASE_URL değerinin https:// ile başlaması gerekir."
+    return value, None
+
+
+def _require_public_base_url() -> str:
+    """
+    PUBLIC_BASE_URL zorunlu olan uçlar için kullan.
+    Ayarsızsa 503, https değilse 400 fırlatır.
+    """
+    base_url, issue = _public_base_url_status()
+    if issue:
+        status = 503 if "ayarlı değil" in issue else 400
+        raise HTTPException(status_code=status, detail=issue)
+    assert base_url  # type checking
+    return base_url
+
+
+def _optional_public_tag_url(shortid: str) -> Optional[str]:
+    """
+    Ayarlı ve geçerliyse /t/<shortid> için tam public URL döndürür.
+    """
+    base_url, issue = _public_base_url_status()
+    if issue or not base_url:
+        return None
+    return f"{base_url}/t/{shortid}"
+
+
 def render_template(
     request: Request, template_name: str, context: Optional[Dict] = None, status_code: int = 200
 ) -> HTMLResponse:
-    # // CODEx: Şablon isimlerini parametre olarak alan yardımcı fonksiyon
+    base_url, base_issue = _public_base_url_status()
     payload = {
         "request": request,
         "user_id": get_current_user_id(request),
         "SUPPORT_EMAIL": SUPPORT_EMAIL,
         "PURCHASE_URL": PURCHASE_URL,
+        "public_base_url": base_url,
+        "public_base_url_issue": base_issue,
+        "public_base_url_configured": bool(base_url and not base_issue),
     }
     if context:
         payload.update(context)
@@ -78,7 +122,6 @@ def render_template(
 
 @app.on_event("startup")
 def on_startup() -> None:
-    # // CODEx: Uygulama başlarken veritabanını ve kolonları doğruluyoruz
     init_db()
 
 
@@ -88,7 +131,9 @@ def health() -> str:
 
 
 def _sanitize_next(url_value: Optional[str]) -> str:
-    # // CODEx: Açık yönlendirme riskini engelliyoruz
+    """
+    Açık yönlendirmeyi engelle: yalnızca site içi path'e izin ver.
+    """
     if not url_value:
         return "/dashboard"
     url_value = url_value.strip()
@@ -105,10 +150,11 @@ def _load_user(user_id: Optional[int]) -> Optional[User]:
 
 
 def _ensure_admin(user: User) -> None:
-    # // CODEx: Admin kontrolleri için yardımcı fonksiyon
     if user.email not in ADMIN_EMAILS:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
 
+
+# --- Sayfalar ---
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -129,7 +175,6 @@ def register_form(
     next: Optional[str] = None,
     error: Optional[str] = None,
 ):
-    # // CODEx: NFC taraması yapılmadan kayıt olunmaması için kontrol
     if not pending_shortid:
         error = error or "Kayıt için önce NFC etiketinizi okutmalısınız."
     return render_template(
@@ -202,9 +247,16 @@ def register_submit(
             session.add(profile)
         session.commit()
 
-    destination = _sanitize_next(next_url) or f"/claim/{pending_shortid}"
-    if destination == "/dashboard":
-        destination = f"/claim/{pending_shortid}"
+    # Kayıttan sonra doğrudan edit'e (just claimed) yönlendir
+    destination = _sanitize_next(next_url) or f"/edit/{pending_shortid}?claimed=1"
+    default_targets = {
+        "/dashboard",
+        f"/claim/{pending_shortid}",
+        f"/edit/{pending_shortid}",
+    }
+    if destination in default_targets:
+        destination = f"/edit/{pending_shortid}?claimed=1"
+
     response = RedirectResponse(url=destination, status_code=303)
     set_session_cookie(response, user.id)  # type: ignore[name-defined]
     return response
@@ -381,11 +433,12 @@ def claim_submit(request: Request, shortid: str):
             session.add(profile)
         session.commit()
 
-    return RedirectResponse(url=f"/edit/{shortid}", status_code=303)
+    return RedirectResponse(url=f"/edit/{shortid}?claimed=1", status_code=303)
 
 
 @app.get("/t/{shortid}", response_class=HTMLResponse)
 def show_tag(request: Request, shortid: str):
+    current_user_id = get_current_user_id(request)
     with get_session() as session:
         tag = session.exec(select(Tag).where(Tag.shortid == shortid)).first()
         if not tag:
@@ -431,7 +484,12 @@ def show_tag(request: Request, shortid: str):
     return render_template(
         request,
         "tag.html",
-        {"tag_id": shortid, "profile": profile_data},
+        {
+            "tag_id": shortid,
+            "profile": profile_data,
+            "public_tag_url": _optional_public_tag_url(shortid),
+            "is_owner": bool(tag.owner_user_id and tag.owner_user_id == current_user_id),
+        },
     )
 
 
@@ -458,6 +516,8 @@ def edit_form(request: Request, shortid: str):
         {
             "tag_id": shortid,
             "profile": profile,
+            "just_claimed": request.query_params.get("claimed") == "1",
+            "public_tag_url": _optional_public_tag_url(shortid),
         },
     )
 
@@ -551,7 +611,6 @@ async def edit_submit(
 
 
 def generate_shortid(length: int = 8) -> str:
-    # // CODEx: Admin'in ürettiği shortid'lerin benzersiz olmasını sağlıyoruz
     token = secrets.token_urlsafe(length)
     return token.replace("-", "").replace("_", "")[:length]
 
@@ -584,7 +643,11 @@ def admin_generate(request: Request, n: int = Form(10)):
     output = io.BytesIO(buffer.getvalue().encode("utf-8"))
     output.seek(0)
     headers = {"Content-Disposition": "attachment; filename=generated_tags.csv"}
-    return StreamingResponse(output, media_type="text/csv", headers=headers)
+    return StreamingResponse(
+        output,
+        media_type="text/csv; charset=utf-8",
+        headers=headers,
+    )
 
 
 @app.get("/admin/unassigned", response_class=HTMLResponse)
@@ -654,9 +717,11 @@ def admin_qr_zip(
         raise HTTPException(status_code=400, detail="Geçerli shortid bulunamadı")
 
     memory = io.BytesIO()
+    base_url = _require_public_base_url()
+
     with zipfile.ZipFile(memory, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         for sid in valid_ids:
-            url = f"{PUBLIC_BASE_URL.rstrip('/')}/t/{sid}" if PUBLIC_BASE_URL else f"/t/{sid}"
+            url = f"{base_url}/t/{sid}"
             qr = qrcode.QRCode(
                 version=None,
                 error_correction=qrcode.constants.ERROR_CORRECT_Q,
@@ -681,7 +746,8 @@ def qr_code(shortid: str, size: int = 10, border: int = 4):
         if not tag:
             raise HTTPException(status_code=404, detail="Tag bulunamadı")
 
-    target_url = f"{PUBLIC_BASE_URL.rstrip('/')}/t/{shortid}" if PUBLIC_BASE_URL else f"/t/{shortid}"
+    base_url = _require_public_base_url()
+    target_url = f"{base_url}/t/{shortid}"
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_Q,
@@ -748,8 +814,8 @@ def api_options(request: Request) -> Dict:
                 "title": "Admin Paneli",
                 "items": [
                     {"name": "Boş Tag’ler", "url": "/admin/unassigned", "icon": "card-list"},
-                    {"name": "CSV Envanter", "url": "/admin/unassigned#csv", "icon": "upload"},
                     {"name": "QR ZIP Oluştur", "url": "/admin/unassigned#qr", "icon": "folder-symlink"},
+                    {"name": "CSV Envanter", "url": "/admin/unassigned#csv", "icon": "upload"},
                 ],
             }
         )

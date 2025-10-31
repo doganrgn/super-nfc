@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<!-- // CODEx: Tüm kartvizit alanlarını düzenlenebilir hale getiriyoruz -->
 <h2 class="mb-3">✏️ Tag Düzenle: {{ tag_id }}</h2>
+
+{% if request.query_params.get('claimed') == '1' %}
+<div style="background-color:#e0f7fa; color:#00695c; padding:10px 15px; border-radius:8px; margin-bottom:15px;">
+  🎉 <strong>Hoş geldiniz!</strong> Etiketiniz başarıyla aktive edildi. Şimdi kartvizit bilgilerinizi doldurabilir, 
+  profil fotoğrafınızı ve bağlantılarınızı ekleyebilirsiniz.
+</div>
+{% endif %}
+
 
 <div class="row">
   <div class="col-12 col-lg-8">

@@ -1,65 +1,68 @@
-diff --git a/README.md b/README.md
-index 015922e4bf97fd20abf9fd28290037393c27c24d..a99b6a2ea10a685e89f5347633de98734617ffd1 100644
---- a/README.md
-+++ b/README.md
-@@ -1,22 +1,40 @@
- # Super NFC
- 
--NFC etiketi okutuldu??unda kullan??c??ya ait kartvizit/ileti??im sayfas??n?? g??steren platform.
--
--## ??zellikler
--- Sa??da a????l??r/kapan??r Options sidebar
--- Her tag i??in sabit ID (site + server + tag ??zerinde)
--- NFC okutulmadan kay??t yok; giri?? m??mk??n
--- Hesaplar tag ID???ye atan??r
--- Kartvizit/ileti??im sayfas?? (foto, logo, sosyal ikonlar)
--- ??oklu sunucu deste??i
--
--## Geli??tirme
--- (Proje stack???i ve ??al????t??rma ad??mlar?? buraya gelecek)
--
--sunucuyu ba??latmak i??in ??u ad??mlar?? izle 
--cmd komutlar?? 
--1- cd C:\Users\Hp\Documents\nfc-tag-dashboard
--(??nce k??t??phaneleri y??kle)
--2- pip install -r requirements.txt
--(uvicorn un aktif oldu??undan emin ol)
--3- uvicorn main:app --reload --host 0.0.0.0 --port 8000
-+Super NFC, NFC tag'lar?? okutuldu??unda kullan??c??lar??n dijital kartvizit bilgilerini sunan hafif bir FastAPI uygulamas??d??r. Her tag, site ve sunucu kodlar??yla birle??en sabit bir kimli??e sahiptir; b??ylece ??ok sunuculu ortamlarda bile g??venle ????z??mlenebilir.
-+
-+## Temel Ak????
-+1. NFC tag okutuldu??unda istemci `https://.../card/<tagId>` adresine y??nlenir.
-+2. Tag hen??z atanmad??ysa kullan??c?? `/register?tagId=<tagId>` formuna giderek kay??t olu??turur.
-+3. Kay??t esnas??nda hesap tag'e kal??c?? olarak ba??lan??r; ayn?? tag ba??ka hesaba ta????namaz.
-+4. Giri?? yapan kullan??c??lar `/me` ekran??ndan kartvizit bilgilerini d??zenler.
-+5. Her okutma `card` sayfas??n?? a??ar ve avatar, logo, sosyal a?? ikonlar?? ile IBAN bilgilerini g??sterir.
-+
-+## REST U?? Noktalar??
-+| Metot | Yol | A????klama |
-+|-------|-----|----------|
-+| `POST` | `/auth/register?tagId=...` | NFC tag'i okutmu?? kullan??c?? i??in hesap olu??turur ve tag'i kal??c?? olarak ili??kilendirir. |
-+| `POST` | `/auth/login` | E-posta / parola ile oturum a??ar. |
-+| `POST` | `/auth/logout` | Oturumu kapat??r. |
-+| `GET` | `/card/{tagId}` | Kart verilerini d??ner. `Accept: application/json` ba??l?????? g??nderilirse JSON d??ner, aksi halde HTML kart dizilimi render edilir. |
-+| `PUT` | `/me/profile` | Oturum a??m???? kullan??c??n??n kartvizit bilgilerini g??nceller. |
-+
-+> **Not:** Kay??t (register) u?? noktas?? i??in tag ID zorunludur; bu u?? nokta NFC okutmas?? olmadan ??a??r??lamaz. Ba??ar??l?? bir kay??t sonras?? tag ba??ka hesaba atanamaz.
-+
-+## Do??rulama ve Oran S??n??r??
-+- Parolalar en az 8 karakter olmal??d??r.
-+- T??m URL alanlar?? (LinkedIn, Facebook vb.) do??rulan??r ve bo?? b??rak??labilir.
-+- `/auth/login` ve `/auth/register` u?? noktalar?? temel bir IP ba????na h??z s??n??r?? (60 saniyede 10 ve 5 istek) uygular.
-+
-+## Aray??zler
-+- Kart sayfas?? profil foto??raf??n??, logo alan??n?? ve LinkedIn, Facebook, Instagram, WhatsApp ikonlar??n?? i??erir.
-+- Profil d??zenleme ekran?? yaln??zca giri?? yapan kullan??c??lar i??in eri??ilebilir.
-+
-+## ??al????t??rma
-+```bash
-+python -m venv .venv
-+source .venv/bin/activate  # Windows i??in .venv\\Scripts\\activate
-+pip install -r requirements.txt
-+uvicorn main:app --reload --host 0.0.0.0 --port 8000
-+```
-+
-+SQLite veritaban?? `app.db` dosyas??nda saklan??r ve uygulama a????l??????nda gerekli kolonlar otomatik olarak eklenir.
+# Super NFC
+
+Super NFC; FastAPI, SQLModel ve Jinja2 tabanlı hafif bir NFC kartvizit platformudur. Her fiziksel etikete yazılan sabit `/t/<shortid>` bağlantısı sunucu tarafında ilgili kullanıcının profil sayfasına yönlenir. Böylece claim işlemi tamamlandıktan sonra fiziksel etiketi yeniden yazmaya gerek kalmaz.
+
+## Özellikler
+- NFC etiketi okutulduğunda dinamik profil sayfası (`/t/<shortid>`)
+- Claim/Giriş akışları ve profil düzenleme paneli
+- QR kod üretimi ve admin kullanıcılar için toplu QR ZIP çıktısı
+- İstatistik API'si ile ziyaret sayılarının takibi
+
+## Gereksinimler
+- Python 3.10+
+- SQLite (varsayılan olarak proje dizininde `app.db` oluşturulur)
+
+## Kurulum
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows için .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Projeyi ilk kez çalıştırmadan önce `.env` dosyası oluşturup ortam değişkenlerini tanımlayın:
+
+```env
+PUBLIC_BASE_URL=https://ornek-subdomain.trycloudflare.com
+ADMIN_EMAILS=admin@example.com
+PURCHASE_URL=https://satin-al.example.com
+SUPPORT_EMAIL=destek@example.com
+SECRET_KEY=degerinizi_burada_tutun
+```
+
+> **Not:** `PUBLIC_BASE_URL` değeri mutlaka **https://** ile başlamalıdır. QR kodları ve NFC linkleri bu adresi baz alarak üretilir.
+
+İdari araçlar tarafından indirilen CSV ve benzeri çıktı dosyaları UTF-8 karakter setiyle oluşturulur; dosyaları Excel veya benzeri araçlarda açarken bu kodlamayı seçmeniz önerilir.
+
+## Geliştirme Ortamında Public URL Alma
+NFC etiketleri telefon üzerinden okutulduğunda yerel ağdaki `127.0.0.1:8000` adresine erişemez. Geliştirme sürecinde public bir tünel kullanarak yerel sunucunuzu dışarıya açmanız gerekir.
+
+### Cloudflare Tunnel (önerilen)
+```bash
+cloudflared tunnel --url http://127.0.0.1:8000
+```
+Komut çalıştıktan sonra Cloudflare size `https://` ile başlayan geçici bir URL üretir. Bu URL'yi `.env` dosyanızdaki `PUBLIC_BASE_URL` değerine yazın.
+
+### ngrok Alternatifi
+```bash
+ngrok http 8000
+```
+Çıktıdaki `https://` adresini `PUBLIC_BASE_URL` olarak kullanabilirsiniz.
+
+## Uygulamayı Çalıştırma
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Uygulama ilk çalıştığında veritabanı tabloları ve eksik kolonlar otomatik olarak oluşturulur.
+
+## Akış Özeti
+1. NFC etiketi okutulduğunda kullanıcı `https://.../t/<shortid>` adresine yönlenir.
+2. Etiket sahipsiz ise claim/register akışı devreye girer.
+3. Claim tamamlandığında aynı `/t/<shortid>` adresi dinamik olarak kullanıcının profilini gösterir.
+4. Profil düzenlendiğinde değişiklikler anında herkes tarafından görüntülenir; fiziksel etiketi yeniden programlamaya gerek yoktur.
+
+## Yardım & Destek
+- Destek e-postası: `SUPPORT_EMAIL`
+- Yeni etiket satın alma bağlantısı: `PURCHASE_URL`
+
+Admin kullanıcıları `/admin/unassigned` panelinden boş tag envanterini görüntüleyebilir, CSV import yapabilir ve toplu QR ZIP indirebilir.

@@ -143,4 +143,3 @@
 
   loadOptions();
 })();
-// CODEx: Sidebar seçenekleri dinamik olarak besleniyor
